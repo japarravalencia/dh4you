@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Twin T2D Prevention — Policy &amp; Allostatic Stress RK4 Simulator (Health Policy &amp; Technology)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            navy: { 50: '#f4f8fc', 100: '#e2ecf7', 700: '#163560', 800: '#0f2648', 900: '#091830' },
+            tealhpt: '#008080',
+            coralhpt: '#c02e26',
+            amberhpt: '#c47c10',
+            foresthpt: '#22863a'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+    input[type="range"] { accent-color: #0f2648; cursor: pointer; }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden transition-all duration-300 opacity-0 translate-y-2">
+    <div class="bg-navy-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+      <span id="toast-msg">Action completed</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-navy-900/95 backdrop-blur text-white border-b border-slate-800 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-700 flex items-center justify-center font-extrabold text-xs shadow">
+          DT
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] uppercase tracking-widest font-semibold text-teal-300">Open Science RK4 Flight Simulator</span>
+            <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] rounded-full bg-slate-800 text-slate-300 border border-slate-700">Health Policy &amp; Technology</span>
+          </div>
+          <h1 class="text-sm sm:text-base font-bold leading-snug">Mitigating Digital Fatigue &amp; the Goodhart Trap in T2D Prevention (180-Day SD-DT)</h1>
+        </div>
+      </div>
+      <nav class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+        <a href="#simulator" class="px-2.5 py-1.5 rounded-lg text-slate-200 hover:bg-slate-800 transition">Simulator</a>
+        <a href="#loops" class="px-2.5 py-1.5 rounded-lg text-slate-200 hover:bg-slate-800 transition">Feedback Loops</a>
+        <a href="#ethics" class="px-2.5 py-1.5 rounded-lg text-slate-200 hover:bg-slate-800 transition">ODEs &amp; Privacy</a>
+        <button onclick="exportCSV()" class="ml-1 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold transition">Export CSV</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="bg-gradient-to-b from-navy-900 via-navy-800 to-slate-900 text-white border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div class="grid lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-8 space-y-3">
+          <div class="flex flex-wrap gap-2 text-[11px]">
+            <span class="px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-semibold">6 Stocks + SMTH1 · 12 Flows · RK4 (&Delta;t = 0.25 d)</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">UNAB Cohort Baseline (N = 153, Anonymized)</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium">Zero Individual PII Exposed (Law 1581/2012)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+            Interactive Digital Health Policy Sandbox: Privacy, Fast-Logging, Adaptive Goals &amp; Chronic Stress
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed max-w-3xl">
+            Explore the System Dynamics Digital Twin (SD-DT) behind our <em>Health Policy and Technology</em> study. Toggle the four ethical digital health governance levers and environmental stress to reproduce our 10 ablation scenarios and observe the <strong>Policy Decoupling Paradox</strong> in real time.
+          </p>
+        </div>
+        <div class="lg:col-span-4 bg-slate-800/75 border border-slate-700 rounded-2xl p-4 text-xs space-y-2">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-teal-300">Research Team</div>
+          <p class="text-slate-100"><strong>Parra Valencia, J. A.</strong><sup>1,*</sup>, Ospina, A.<sup>1</sup>, Ospina, D.<sup>2</sup>, &amp; Su&aacute;rez, F.<sup>1</sup></p>
+          <p class="text-slate-300"><sup>1</sup>Universidad Aut&oacute;noma de Bucaramanga (UNAB) &bull; <sup>2</sup>Universidad Aut&oacute;noma de Manizales (UAM), Colombia</p>
+          <p class="text-[11px] text-slate-400 pt-1 border-t border-slate-700">
+            OASIS XMILE 1.0 replication package audited with Barlas structural tests and global Sobol sensitivity (5,120 + 1,792 RK4 runs).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Simulator -->
+  <main id="simulator" class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+      <div>
+        <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Exact Browser-Native RK4 Engine (0–180 Days)</span>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-navy-900">1. Digital Health Policy &amp; Allostatic Stress Simulator</h2>
+      </div>
+      <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm text-xs cursor-pointer">
+        <input type="checkbox" id="chkOverlayRigid" checked onchange="updateSim()" class="w-4 h-4 accent-coralhpt rounded" />
+        <span class="font-medium text-slate-700">Overlay 01 Rigid mHealth App (All OFF)</span>
+      </label>
+    </div>
+
+    <!-- Scenario Presets -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Published Policy Ablation &amp; Barlas Stress Scenarios:</span>
+        <span id="active-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-navy-50 text-navy-800 border border-navy-100">Active: 07 Full SD-DT MVP</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <button data-preset="rigid" onclick="applyPreset('rigid')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">01 Rigid App</div><div class="text-[10px] opacity-80">All Switches OFF</div>
+        </button>
+        <button data-preset="nores" onclick="applyPreset('nores')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">06 Run 2</div><div class="text-[10px] opacity-80">Eng ON, Resil OFF</div>
+        </button>
+        <button data-preset="mvp" onclick="applyPreset('mvp')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">07 Full MVP</div><div class="text-[10px] opacity-80">All 4 Levers ON</div>
+        </button>
+        <button data-preset="mvp_stress" onclick="applyPreset('mvp_stress')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">08 MVP + Policy</div><div class="text-[10px] opacity-80">+ Stress Reduction</div>
+        </button>
+        <button data-preset="ext1" onclick="applyPreset('ext1')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">09 Extreme 1</div><div class="text-[10px] opacity-80">Zero Stress + MVP</div>
+        </button>
+        <button data-preset="ext2" onclick="applyPreset('ext2')" class="preset-btn px-3 py-2 rounded-xl text-xs border text-left transition">
+          <div class="font-bold">10 Extreme 2</div><div class="text-[10px] opacity-80">Severe Shock Rigid</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6 items-start">
+      <!-- Controls -->
+      <aside class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 lg:sticky lg:top-20">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-navy-900">Digital Health Governance Levers</h3>
+            <p class="text-[11px] text-slate-500">Bilinear policy switches &amp; allostatic load</p>
+          </div>
+          <button onclick="applyPreset('mvp')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200">Reset MVP</button>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-teal-50/70 border border-teal-200 space-y-2.5 text-xs">
+          <div class="text-[11px] font-bold uppercase text-teal-900">4 Digital Policy Levers (0 = OFF, 1 = ON)</div>
+          <label class="flex items-center justify-between cursor-pointer">
+            <span><strong>1. UUIDv4 Privacy-by-Design</strong> (<em>S<sub>T,Ret</sub></em>=0.65)</span>
+            <input id="sw-uuid" type="checkbox" checked onchange="onControl()" class="w-4 h-4 accent-tealhpt" />
+          </label>
+          <label class="flex items-center justify-between cursor-pointer">
+            <span><strong>2. Fast-Logging &lt;30s UX</strong> (<em>S<sub>T,Ret</sub></em>=0.27)</span>
+            <input id="sw-fast" type="checkbox" checked onchange="onControl()" class="w-4 h-4 accent-tealhpt" />
+          </label>
+          <label class="flex items-center justify-between cursor-pointer">
+            <span><strong>3. Adaptive Resilience Mode</strong> (Loop B<sub>3</sub>)</span>
+            <input id="sw-res" type="checkbox" checked onchange="onControl()" class="w-4 h-4 accent-tealhpt" />
+          </label>
+          <label class="flex items-center justify-between cursor-pointer">
+            <span><strong>4. JITAI Alert Cap (&le;2/day)</strong> (Loop B<sub>2</sub>)</span>
+            <input id="sw-cap" type="checkbox" checked onchange="onControl()" class="w-4 h-4 accent-tealhpt" />
+          </label>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="text-[11px] font-bold uppercase text-slate-700">Environmental Stress &amp; Physiology</div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold"><span>Cohort Baseline Stress (S<sub>base</sub>)</span><span id="v-stress" class="font-mono text-coralhpt">0.63</span></div>
+            <input id="sl-stress" type="range" min="0.00" max="0.85" step="0.01" value="0.63" oninput="onControl()" class="w-full" />
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono"><span>0.00 (Zero)</span><span>0.42 (Policy)</span><span>0.63 (UNAB)</span><span>0.85</span></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold"><span>30-Day Stress Shock Amp. (A<sub>shock</sub>)</span><span id="v-amp" class="font-mono">0.25</span></div>
+            <input id="sl-amp" type="range" min="0.00" max="0.35" step="0.01" value="0.25" oninput="onControl()" class="w-full" />
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold"><span>Sleep Drain Convexity (n)</span><span id="v-expn" class="font-mono">2.2</span></div>
+            <input id="sl-expn" type="range" min="1.0" max="3.0" step="0.1" value="2.2" oninput="onControl()" class="w-full" />
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold"><span>Goal Relaxation Cushion (&lambda;<sub>max</sub>)</span><span id="v-lam" class="font-mono">0.45</span></div>
+            <input id="sl-lam" type="range" min="0.00" max="0.65" step="0.05" value="0.45" oninput="onControl()" class="w-full" />
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="exportCSV()" class="flex-1 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold transition">Download CSV</button>
+          <button onclick="copyJSON()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition">Copy Params</button>
+        </div>
+      </aside>
+
+      <!-- KPIs & Charts -->
+      <div class="lg:col-span-8 space-y-5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">180-Day Digital Retention</div>
+            <div id="k-ret" class="text-2xl font-extrabold text-teal-700 mt-1">55.0%</div>
+            <div id="k-ret60" class="text-[11px] text-slate-500 font-mono">Day 60: 55.4%</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">Cardiometabolic Health (CMH)</div>
+            <div id="k-cmh" class="text-2xl font-extrabold text-navy-900 mt-1">0.537</div>
+            <div id="k-cmh-sub" class="text-[11px] text-slate-500 font-mono">Baseline t=0: 0.579</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">Insulin Sensitivity (IS)</div>
+            <div id="k-is" class="text-2xl font-extrabold text-emerald-700 mt-1">0.436</div>
+            <div class="text-[11px] text-slate-500">Inverse HOMA-IR (&tau;<sub>2</sub>=14d)</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">Self-Regulation (R<sub>180</sub>)</div>
+            <div id="k-reg" class="text-2xl font-extrabold text-indigo-700 mt-1">0.554</div>
+            <div id="k-rmin" class="text-[11px] text-slate-500 font-mono">Trough R_min: 0.515</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">Modifiable FINDRISC (d180)</div>
+            <div id="k-find" class="text-2xl font-extrabold text-coralhpt mt-1">6.47</div>
+            <div id="k-wt" class="text-[11px] text-slate-500 font-mono">Excess Wt Risk: 46.2%</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-500">Mean Compliance Fatigue</div>
+            <div id="k-fat" class="text-2xl font-extrabold text-amberhpt mt-1">0.391</div>
+            <div id="k-smax" class="text-[11px] text-slate-500 font-mono">Max Sleep Debt: 2.73h</div>
+          </div>
+        </div>
+
+        <div id="diag-box" class="rounded-2xl bg-navy-900 text-slate-100 p-4 border-l-4 border-teal-400 text-xs leading-relaxed"></div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <h4 class="text-xs font-bold text-navy-900 mb-2">(a) Cardiometabolic Health Reserve CMH(t)</h4>
+            <div class="h-56"><canvas id="cCMH"></canvas></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <h4 class="text-xs font-bold text-navy-900 mb-2">(b) Digital Retention Rate Ret(t) (%)</h4>
+            <div class="h-56"><canvas id="cRet"></canvas></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <h4 class="text-xs font-bold text-navy-900 mb-2">(c) Executive Self-Regulation R(t)</h4>
+            <div class="h-56"><canvas id="cReg"></canvas></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <h4 class="text-xs font-bold text-navy-900 mb-2">(d) Insulin Sensitivity IS(t)</h4>
+            <div class="h-56"><canvas id="cIS"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Feedback Loops Explorer -->
+  <section id="loops" class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-lg sm:text-xl font-extrabold text-navy-900 mb-1">2. Canonical Feedback Loops Explorer</h2>
+      <p class="text-xs text-slate-600 mb-4">Click a loop to inspect how digital health design interacts with neuroendocrine and cardiometabolic delays.</p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button onclick="showLoop('R1')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200">R1: XAI Empowerment (+)</button>
+        <button onclick="showLoop('R2')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-50 text-navy-800 border border-navy-100">R2: Delayed Clinical Consolidation (+)</button>
+        <button onclick="showLoop('R3')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-coralhpt border border-red-200">R3: Sleep–UPF–Stress Spiral (+)</button>
+        <button onclick="showLoop('B1')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">B1: Privacy Surveillance Brake (-)</button>
+        <button onclick="showLoop('B2')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">B2: Goodhart JITAI Fatigue Trap (-)</button>
+        <button onclick="showLoop('B3')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">B3: Resilience Mode Buffer (-)</button>
+      </div>
+      <div id="loop-card" class="p-4 rounded-xl bg-navy-900 text-slate-100 text-xs leading-relaxed"></div>
+    </div>
+  </section>
+
+  <!-- Equations & Ethics -->
+  <section id="ethics" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-12">
+    <div class="bg-navy-900 text-white rounded-2xl p-6 grid md:grid-cols-12 gap-6 text-xs">
+      <div class="md:col-span-6 space-y-2.5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-teal-300">Open Science &amp; Ethics Governance</span>
+        <h3 class="text-lg font-extrabold">3. Ethical Privacy Compliance &amp; Replication</h3>
+        <p class="text-slate-300 leading-relaxed">
+          Baseline parameterization derives strictly from anonymized aggregate statistics of the UNAB <em>Empoderamiento Saludable</em> cohort (N = 153; UNAB CIEI approval, Colombian Resolution 8430/1993 and Personal Data Protection Law 1581/2012). <strong>Zero individual participant records</strong> are stored in this simulator or repository.
+        </p>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button onclick="copyBib('bibtex')" class="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 font-semibold">Copy BibTeX</button>
+          <button onclick="copyBib('apa')" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 font-semibold">Copy APA</button>
+        </div>
+      </div>
+      <div class="md:col-span-6">
+        <pre id="bib-box" class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-[11px] text-teal-200 overflow-x-auto leading-relaxed">@article{parravalencia2026dt_t2d,
+  author  = {Parra Valencia, Jorge Andrick and Ospina, Ana and Ospina, Diana and Su{\'{a}}rez, Fabi{\'{a}}n},
+  title   = {Mitigating Digital Fatigue and the Goodhart Trap in Type 2 Diabetes Prevention: A System Dynamics Digital Twin Policy Assessment for Young Adults},
+  journal = {Health Policy and Technology},
+  year    = {2026},
+  publisher = {Elsevier}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const BASE = {
+      base_stress: 0.63, shock_amp: 0.25, s_star: 4.0, exp_n: 2.2,
+      alpha_r: 0.18, beta_s: 0.12, gamma_f: 0.20,
+      tau1: 1.0, tau2: 14.0, tau3: 60.0,
+      t0: 1.0, lam: 0.45, k_sig: 8.0, z_star: 0.65,
+      sw_res: 1.0, sw_fast: 1.0, sw_uuid: 1.0, sw_cap: 1.0,
+      period: 30.0, sd_norm_z: 8.0, hpa_ref: 6.0,
+      c_str: 0.8, c_upf: 0.4, tau_rec: 3.0,
+      r_trust: 0.10, r_fat: 0.12, r_priv: 0.10,
+      tau_log: 2.0, tau_obs: 10.0
+    };
+
+    const PRESETS = {
+      rigid:      { label: '01 Rigid mHealth App (All OFF)', sw_res: 0, sw_fast: 0, sw_uuid: 0, sw_cap: 0, base_stress: 0.63, shock_amp: 0.25, exp_n: 2.2, lam: 0.45 },
+      nores:      { label: '06 Run 2: Eng ON, Resilience OFF', sw_res: 0, sw_fast: 1, sw_uuid: 1, sw_cap: 1, base_stress: 0.63, shock_amp: 0.25, exp_n: 2.2, lam: 0.45 },
+      mvp:        { label: '07 Run 1: Full SD-DT MVP (All ON)', sw_res: 1, sw_fast: 1, sw_uuid: 1, sw_cap: 1, base_stress: 0.63, shock_amp: 0.25, exp_n: 2.2, lam: 0.45 },
+      mvp_stress: { label: '08 MVP + Inst. Stress Policy', sw_res: 1, sw_fast: 1, sw_uuid: 1, sw_cap: 1, base_stress: 0.42, shock_amp: 0.12, exp_n: 2.2, lam: 0.45 },
+      ext1:       { label: '09 Extreme 1: Zero Stress + MVP', sw_res: 1, sw_fast: 1, sw_uuid: 1, sw_cap: 1, base_stress: 0.00, shock_amp: 0.00, exp_n: 2.2, lam: 0.45 },
+      ext2:       { label: '10 Extreme 2: Severe Shock Rigid', sw_res: 0, sw_fast: 0, sw_uuid: 0, sw_cap: 0, base_stress: 0.85, shock_amp: 0.15, exp_n: 2.2, lam: 0.45 }
+    };
+
+    let cfg = { ...BASE, ...PRESETS.mvp };
+    let activeId = 'mvp';
+    let rigidRun = null, lastRun = null;
+    const charts = {};
+
+    function evalAux(t, y, p) {
+      const sd = Math.max(0, y[0]);
+      const R = Math.max(0, Math.min(1, y[1]));
+      const D = Math.max(0, Math.min(1, y[2]));
+      const IS = Math.max(0, Math.min(1, y[3]));
+      const CMH = Math.max(0, Math.min(1, y[4]));
+      const Q = Math.max(0, Math.min(1, y[5]));
+      const adhSmth = Math.max(0, Math.min(1, y[6]));
+
+      const stress = Math.min(1, Math.max(0, p.base_stress + p.shock_amp * Math.sin(2 * Math.PI * t / p.period)));
+      const z = 0.5 * stress + 0.5 * Math.min(1, sd / p.sd_norm_z);
+      const sigm = 1.0 / (1.0 + Math.exp(Math.max(-50, Math.min(50, -p.k_sig * (z - p.z_star)))));
+      const goalT = p.t0 * (1 - p.sw_res * p.lam * sigm);
+      const xai = 0.3 + 0.7 * (Q / (Q + 0.3));
+      const hgap = Math.max(0, 0.85 - CMH);
+      const jitai = p.sw_cap * Math.min(2, 1 + 2 * hgap) * (1 - 0.5 * p.sw_res * sigm) + (1 - p.sw_cap) * (1 + 6 * hgap);
+      const fric = 0.12 * p.sw_fast + 0.65 * (1 - p.sw_fast);
+      const adh = Math.min(1, R * D * (0.6 + 0.4 * xai) * (1 + 0.08 * jitai));
+      const disc = Math.max(0, goalT - adh);
+      const fat = Math.min(1, 0.25 * (jitai / 4) + 0.45 * disc + 0.30 * fric);
+      const upf = Math.min(1, 0.77 * (1 - R) * (0.5 + 0.5 * z));
+      const hpa = Math.min(1, 0.6 * stress + 0.4 * Math.min(1, sd / p.hpa_ref));
+      const priv = (1 - 0.8 * p.sw_uuid) * Q;
+      const targetIS = Math.min(1, Math.max(0.1, 0.45 + 0.55 * adhSmth - 0.25 * hpa - 0.25 * upf));
+      const targetCMH = Math.min(1, Math.max(0.1, 0.2 + 0.8 * IS));
+      return { stress, z, xai, jitai, fric, adh, fat, upf, hpa, priv, targetIS, targetCMH };
+    }
+
+    function derivs(t, y, p) {
+      const sd = Math.max(0, y[0]);
+      const R = Math.max(0, Math.min(1, y[1]));
+      const D = Math.max(0, Math.min(1, y[2]));
+      const IS = Math.max(0, Math.min(1, y[3]));
+      const CMH = Math.max(0, Math.min(1, y[4]));
+      const Q = Math.max(0, Math.min(1, y[5]));
+      const adhSmth = Math.max(0, Math.min(1, y[6]));
+      const a = evalAux(t, y, p);
+
+      const dSd = (p.c_str * a.stress + p.c_upf * a.upf) - (sd / p.tau_rec) * (0.5 + 0.5 * R * (1 + 0.3 * p.sw_res));
+      const dR = p.alpha_r * (1 - R) * (0.5 + 0.5 * a.xai) * (0.6 + 0.4 * CMH) - R * (p.beta_s * Math.pow(sd / p.s_star, p.exp_n) + p.gamma_f * a.fat);
+      const dD = p.r_trust * (1 - D) * a.xai - D * (p.r_fat * a.fat + p.r_priv * a.priv);
+      const dIS = Math.max(0, (a.targetIS - IS) / p.tau2) - Math.max(0, (IS - a.targetIS) / (0.7 * p.tau2));
+      const dCMH = Math.max(0, (a.targetCMH - CMH) / p.tau3) - Math.max(0, (CMH - a.targetCMH) / (0.8 * p.tau3));
+      const dQ = ((1 - Q) * a.adh * (1 - 0.5 * a.fric) / p.tau_log) - (Q / p.tau_obs);
+      const dAdh = (a.adh - adhSmth) / p.tau1;
+      return { dy: [dSd, dR, dD, dIS, dCMH, dQ, dAdh], aux: a };
+    }
+
+    function simulateRK4(p) {
+      const dt = 0.25, steps = 720;
+      const a0 = evalAux(0, [2.5, 0.58, 0.85, 0.62, 0.579, 0.50, 0.0], p);
+      let y = [2.5, 0.58, 0.85, 0.62, 0.579, 0.50, a0.adh];
+      const out = { d: [], sd: [], R: [], ret: [], IS: [], CMH: [], fat: [] };
+
+      for (let s = 0; s <= steps; s++) {
+        const t = s * dt;
+        const d0 = derivs(t, y, p);
+        if (s % 4 === 0 || s === steps) {
+          out.d.push(Math.round(t));
+          out.sd.push(+y[0].toFixed(3));
+          out.R.push(+y[1].toFixed(3));
+          out.ret.push(+(y[2] * 100).toFixed(1));
+          out.IS.push(+y[3].toFixed(3));
+          out.CMH.push(+y[4].toFixed(3));
+          out.fat.push(+d0.aux.fat.toFixed(3));
+        }
+        if (s === steps) break;
+        const k1 = d0.dy;
+        const k2 = derivs(t + 0.5 * dt, y.map((v, i) => v + 0.5 * dt * k1[i]), p).dy;
+        const k3 = derivs(t + 0.5 * dt, y.map((v, i) => v + 0.5 * dt * k2[i]), p).dy;
+        const k4 = derivs(t + dt, y.map((v, i) => v + dt * k3[i]), p).dy;
+        y = y.map((v, i) => {
+          const nv = v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+          return i === 0 ? Math.max(0, nv) : Math.max(0, Math.min(1, nv));
+        });
+      }
+      return out;
+    }
+
+    function cOpts(yLbl, yMin, yMax) {
+      return {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+        scales: {
+          x: { title: { display: true, text: 'Days (0–180)', font: { size: 10 } }, ticks: { maxTicksLimit: 7, font: { size: 10 } } },
+          y: { min: yMin, max: yMax, title: { display: true, text: yLbl, font: { size: 10 } }, ticks: { font: { size: 10 } } }
+        }
+      };
+    }
+
+    function initCharts() {
+      charts.cmh = new Chart(document.getElementById('cCMH'), { type: 'line', data: { labels: [], datasets: [] }, options: cOpts('CMH (0–1)', 0.34, 0.70) });
+      charts.ret = new Chart(document.getElementById('cRet'), { type: 'line', data: { labels: [], datasets: [] }, options: cOpts('Retention (%)', 25, 90) });
+      charts.reg = new Chart(document.getElementById('cReg'), { type: 'line', data: { labels: [], datasets: [] }, options: cOpts('Self-Regulation R', 0.24, 0.66) });
+      charts.is  = new Chart(document.getElementById('cIS'),  { type: 'line', data: { labels: [], datasets: [] }, options: cOpts('Insulin Sens. IS', 0.18, 0.65) });
+    }
+
+    function syncUI() {
+      document.getElementById('sw-uuid').checked = cfg.sw_uuid >= 0.5;
+      document.getElementById('sw-fast').checked = cfg.sw_fast >= 0.5;
+      document.getElementById('sw-res').checked = cfg.sw_res >= 0.5;
+      document.getElementById('sw-cap').checked = cfg.sw_cap >= 0.5;
+      document.getElementById('sl-stress').value = cfg.base_stress;
+      document.getElementById('sl-amp').value = cfg.shock_amp;
+      document.getElementById('sl-expn').value = cfg.exp_n;
+      document.getElementById('sl-lam').value = cfg.lam;
+      document.getElementById('v-stress').textContent = (+cfg.base_stress).toFixed(2);
+      document.getElementById('v-amp').textContent = (+cfg.shock_amp).toFixed(2);
+      document.getElementById('v-expn').textContent = (+cfg.exp_n).toFixed(1);
+      document.getElementById('v-lam').textContent = (+cfg.lam).toFixed(2);
+      document.getElementById('active-badge').textContent = `Active: ${cfg.label}`;
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        const on = b.getAttribute('data-preset') === activeId;
+        b.className = on
+          ? 'preset-btn px-3 py-2 rounded-xl text-xs border text-left bg-navy-900 text-white border-navy-900 shadow transition'
+          : 'preset-btn px-3 py-2 rounded-xl text-xs border text-left bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 transition';
+      });
+    }
+
+    function applyPreset(id) {
+      activeId = id;
+      cfg = { ...BASE, ...PRESETS[id] };
+      syncUI();
+      updateSim();
+    }
+
+    function onControl() {
+      activeId = 'custom';
+      cfg.label = 'Custom Policy Configuration';
+      cfg.sw_uuid = document.getElementById('sw-uuid').checked ? 1 : 0;
+      cfg.sw_fast = document.getElementById('sw-fast').checked ? 1 : 0;
+      cfg.sw_res  = document.getElementById('sw-res').checked ? 1 : 0;
+      cfg.sw_cap  = document.getElementById('sw-cap').checked ? 1 : 0;
+      cfg.base_stress = parseFloat(document.getElementById('sl-stress').value);
+      cfg.shock_amp   = parseFloat(document.getElementById('sl-amp').value);
+      cfg.exp_n       = parseFloat(document.getElementById('sl-expn').value);
+      cfg.lam         = parseFloat(document.getElementById('sl-lam').value);
+      syncUI();
+      updateSim();
+    }
+
+    function updateSim() {
+      const r = simulateRK4(cfg);
+      lastRun = r;
+      const n = r.d.length - 1;
+      const i60 = r.d.indexOf(60);
+      const showRigid = document.getElementById('chkOverlayRigid').checked && activeId !== 'rigid';
+
+      const rMin = Math.min(...r.R);
+      const sMax = Math.max(...r.sd);
+      const fMean = r.fat.reduce((a, b) => a + b, 0) / r.fat.length;
+      const findrisc = 14 * (1 - r.CMH[n]);
+      const wtRisk = 100 * (1 - r.CMH[n]);
+
+      document.getElementById('k-ret').textContent = `${r.ret[n].toFixed(1)}%`;
+      document.getElementById('k-ret60').textContent = `Day 60: ${r.ret[i60].toFixed(1)}%`;
+      document.getElementById('k-cmh').textContent = r.CMH[n].toFixed(3);
+      document.getElementById('k-is').textContent = r.IS[n].toFixed(3);
+      document.getElementById('k-reg').textContent = r.R[n].toFixed(3);
+      document.getElementById('k-rmin').textContent = `Trough R_min: ${rMin.toFixed(3)}`;
+      document.getElementById('k-find').textContent = findrisc.toFixed(2);
+      document.getElementById('k-wt').textContent = `Excess Wt Risk: ${wtRisk.toFixed(1)}%`;
+      document.getElementById('k-fat').textContent = fMean.toFixed(3);
+      document.getElementById('k-smax').textContent = `Max Sleep Debt: ${sMax.toFixed(2)}h`;
+
+      const diag = document.getElementById('diag-box');
+      if (r.CMH[n] >= 0.579) {
+        diag.innerHTML = `<strong class="text-emerald-300">NET CARDIOMETABOLIC IMPROVEMENT ACHIEVED:</strong> Combining ethical digital architecture with reduced chronic stress (S<sub>base</sub>=${cfg.base_stress.toFixed(2)}) lifts <em>CMH</em> above baseline (<strong>${r.CMH[n].toFixed(3)} &ge; 0.579</strong>) while sustaining <strong>${r.ret[n].toFixed(1)}%</strong> 180-day retention.`;
+      } else if (r.ret[n] >= 50) {
+        diag.innerHTML = `<strong class="text-teal-300">POLICY DECOUPLING PARADOX VISIBLE:</strong> Ethical digital levers solve abandonment (<strong>${r.ret[n].toFixed(1)}%</strong> retention) and prevent most metabolic erosion (<em>CMH</em>=<strong>${r.CMH[n].toFixed(3)}</strong> vs. 0.427 rigid), yet chronic baseline stress (S<sub>base</sub>=${cfg.base_stress.toFixed(2)}) still drags <em>CMH</em> below 0.579. Lower S<sub>base</sub> to 0.42 to test institutional stress policy.`;
+      } else {
+        diag.innerHTML = `<strong class="text-red-300">GOODHART TRAP &amp; SURVEILLANCE ATTRITION:</strong> High logging friction, uncapped alerts, or privacy risk drive mean fatigue to <strong>${fMean.toFixed(3)}</strong>, collapsing 180-day retention to <strong>${r.ret[n].toFixed(1)}%</strong> and eroding <em>CMH</em> to <strong>${r.CMH[n].toFixed(3)}</strong>.`;
+      }
+
+      charts.cmh.data.labels = r.d;
+      charts.cmh.data.datasets = [
+        { label: 'Active Scenario CMH', data: r.CMH, borderColor: '#008080', borderWidth: 2.5, pointRadius: 0 },
+        { label: 'Initial Baseline (0.579)', data: r.d.map(() => 0.579), borderColor: '#94a3b8', borderDash: [3, 3], borderWidth: 1.2, pointRadius: 0 },
+        ...(showRigid ? [{ label: '01 Rigid App CMH', data: rigidRun.CMH, borderColor: '#c02e26', borderDash: [4, 4], borderWidth: 1.8, pointRadius: 0 }] : [])
+      ];
+      charts.cmh.update();
+
+      charts.ret.data.labels = r.d;
+      charts.ret.data.datasets = [
+        { label: 'Active Retention (%)', data: r.ret, borderColor: '#0f2648', borderWidth: 2.5, pointRadius: 0 },
+        ...(showRigid ? [{ label: '01 Rigid App (%)', data: rigidRun.ret, borderColor: '#c02e26', borderDash: [4, 4], borderWidth: 1.8, pointRadius: 0 }] : [])
+      ];
+      charts.ret.update();
+
+      charts.reg.data.labels = r.d;
+      charts.reg.data.datasets = [
+        { label: 'Active Self-Regulation R', data: r.R, borderColor: '#22863a', borderWidth: 2.4, pointRadius: 0 },
+        ...(showRigid ? [{ label: '01 Rigid App R', data: rigidRun.R, borderColor: '#c02e26', borderDash: [4, 4], borderWidth: 1.7, pointRadius: 0 }] : [])
+      ];
+      charts.reg.update();
+
+      charts.is.data.labels = r.d;
+      charts.is.data.datasets = [
+        { label: 'Active Insulin Sens. IS', data: r.IS, borderColor: '#c47c10', borderWidth: 2.4, pointRadius: 0 },
+        ...(showRigid ? [{ label: '01 Rigid App IS', data: rigidRun.IS, borderColor: '#c02e26', borderDash: [4, 4], borderWidth: 1.7, pointRadius: 0 }] : [])
+      ];
+      charts.is.update();
+    }
+
+    const LOOPS = {
+      R1: '<strong>R1 — XAI Empowerment Engine (+):</strong> Sustained active adherence feeds multimodal data quality Q(t), boosting hybrid XAI fidelity, which reinforces both digital trust D(t) and executive self-regulation R(t).',
+      R2: '<strong>R2 — Delayed Clinical Consolidation (+):</strong> Adherence improves insulin sensitivity IS(t) over tau_2 = 14 days and cardiometabolic reserve CMH(t) over tau_3 = 60 days, reinforcing intrinsic motivation only if users remain retained past day 60.',
+      R3: '<strong>R3 — Neuroendocrine Sleep &amp; UPF Spiral (+):</strong> Cyclic stress and sleep debt exceeding S* = 4h nonlinearly drain prefrontal self-regulation (n = 2.2), triggering emotional UPF intake and HPA cortisol dysregulation.',
+      B1: '<strong>B1 — Privacy Surveillance Brake (-):</strong> Higher data capture elevates perceived surveillance risk unless mitigated by UUIDv4 pseudonymization (-80% privacy risk, explaining 65.3% of retention variance).',
+      B2: '<strong>B2 — Goodhart JITAI Fatigue Trap (-):</strong> Uncapped notifications and rigid targets amplify goal discrepancy and compliance fatigue F(t), draining both self-regulation and platform retention.',
+      B3: '<strong>B3 — Adaptive Resilience Mode Buffer (-):</strong> When allostatic load z(t) exceeds z* = 0.65, the digital twin relaxes daily goals T(t) and halves alerts via a smooth logistic switch, protecting R_min from 0.434 to 0.515.'
+    };
+    function showLoop(id) { document.getElementById('loop-card').innerHTML = LOOPS[id]; }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      t.classList.remove('hidden');
+      requestAnimationFrame(() => t.classList.remove('opacity-0', 'translate-y-2'));
+      clearTimeout(window._tt);
+      window._tt = setTimeout(() => { t.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => t.classList.add('hidden'), 300); }, 2600);
+    }
+
+    function copyText(txt, msg) {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); showToast(msg); } catch (e) { showToast('Copy manually'); }
+      document.body.removeChild(ta);
+    }
+
+    function copyBib(fmt) {
+      if (fmt === 'bibtex') copyText(document.getElementById('bib-box').textContent, 'BibTeX copied.');
+      else copyText('Parra Valencia, J. A., Ospina, A., Ospina, D., & Suárez, F. (2026). Mitigating Digital Fatigue and the Goodhart Trap in Type 2 Diabetes Prevention: A System Dynamics Digital Twin Policy Assessment for Young Adults. Health Policy and Technology.', 'APA citation copied.');
+    }
+
+    function copyJSON() { copyText(JSON.stringify(cfg, null, 2), 'Scenario configuration copied.'); }
+
+    function exportCSV() {
+      if (!lastRun) return;
+      const r = lastRun;
+      const rows = ['Days,Sleep_Debt,Self_Regulation_R,Retention_Pct,Insulin_Sensitivity_IS,Cardiometabolic_Health_CMH,Compliance_Fatigue'];
+      for (let i = 0; i < r.d.length; i++) rows.push([r.d[i], r.sd[i], r.R[i], r.ret[i], r.IS[i], r.CMH[i], r.fat[i]].join(','));
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `dt_t2d_${activeId}_180d.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      showToast('CSV trajectory downloaded (180 days).');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      rigidRun = simulateRK4({ ...BASE, ...PRESETS.rigid });
+      initCharts();
+      showLoop('R1');
+      applyPreset('mvp');
+    });
+  </script>
+</body>
+</html>
